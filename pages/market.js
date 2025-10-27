@@ -174,11 +174,26 @@ export default function Home() {
       
       const tokenInst = new web3.eth.Contract(MockTokens.abi || MockTokens, token.tokenAddress);
       
+      // Check wallet balance first
+      const valueInWei = toWei(value);
+      const walletBalance = await tokenInst.methods.balanceOf(fromAddress).call();
+      const walletBalanceBN = web3.utils.toBN(walletBalance);
+      const valueInWeiBN = web3.utils.toBN(valueInWei);
+      
+      if (walletBalanceBN.lt(valueInWeiBN)) {
+        const amountNeeded = web3.utils.fromWei(valueInWei);
+        const amountHave = web3.utils.fromWei(walletBalance.toString());
+        
+        throw new Error(
+          `Insufficient ${token.tokenSymbol} balance. You need ${parseFloat(amountNeeded).toFixed(4)} ${token.tokenSymbol} but only have ${parseFloat(amountHave).toFixed(4)} ${token.tokenSymbol}.`
+        );
+      }
+      
       // Approve
       console.log('Approving token spend...');
       await trackPromise(
         sendTransaction(
-          tokenInst.methods.approve(contract.options.address, toWei(value)),
+          tokenInst.methods.approve(contract.options.address, valueInWei),
           fromAddress
         )
       );
@@ -188,7 +203,7 @@ export default function Home() {
       // Lend
       const result = await trackPromise(
         sendTransaction(
-          contract.methods.lend(token.tokenAddress, toWei(value)),
+          contract.methods.lend(token.tokenAddress, valueInWei),
           fromAddress
         )
       );
@@ -236,6 +251,14 @@ export default function Home() {
     try {
       console.log('Starting withdraw for token:', token.tokenSymbol, 'amount:', value);
       
+      // Check if user has enough supplied
+      const suppliedAmount = parseFloat(token.userTokenLentAmount.amount);
+      if (parseFloat(value) > suppliedAmount) {
+        throw new Error(
+          `Cannot withdraw more than supplied. You supplied ${suppliedAmount.toFixed(4)} ${token.tokenSymbol} but trying to withdraw ${value} ${token.tokenSymbol}.`
+        );
+      }
+      
       const result = await trackPromise(
         sendTransaction(
           contract.methods.withdraw(token.tokenAddress, toWei(value)),
@@ -266,22 +289,47 @@ export default function Home() {
       // Calculate interest: borrowAPYRate is like 0.05 for 5%
       const valueInWei = toWei(value);
       const interestInWei = web3.utils.toBN(valueInWei).mul(web3.utils.toBN(Math.floor(parseFloat(token.borrowAPYRate) * 1000000))).div(web3.utils.toBN(1000000));
-      const amountToPayBackInWei = web3.utils.toBN(valueInWei).add(interestInWei).toString();
+      const amountToPayBackInWei = web3.utils.toBN(valueInWei).add(interestInWei);
+      
+      // Check wallet balance first
+      const walletBalance = await tokenInst.methods.balanceOf(fromAddress).call();
+      const walletBalanceBN = web3.utils.toBN(walletBalance);
       
       console.log('Repay details:', {
         value: value,
         valueInWei: valueInWei,
         borrowAPYRate: token.borrowAPYRate,
         interestInWei: interestInWei.toString(),
-        amountToPayBackInWei: amountToPayBackInWei,
+        amountToPayBackInWei: amountToPayBackInWei.toString(),
+        walletBalance: walletBalance.toString(),
+        hasEnoughBalance: walletBalanceBN.gte(amountToPayBackInWei),
         tokenAddress: token.tokenAddress
       });
+      
+      // Check if user has enough balance (including interest)
+      if (walletBalanceBN.lt(amountToPayBackInWei)) {
+        const amountNeeded = web3.utils.fromWei(amountToPayBackInWei.toString());
+        const amountHave = web3.utils.fromWei(walletBalance.toString());
+        const shortage = web3.utils.fromWei(amountToPayBackInWei.sub(walletBalanceBN).toString());
+        
+        throw new Error(
+          `Insufficient ${token.tokenSymbol} balance. You need ${parseFloat(amountNeeded).toFixed(4)} ${token.tokenSymbol} (${value} principal + interest) but only have ${parseFloat(amountHave).toFixed(4)} ${token.tokenSymbol}. You're short by ${parseFloat(shortage).toFixed(4)} ${token.tokenSymbol}.`
+        );
+      }
+      
+      // Check if user is trying to repay more than borrowed
+      const borrowedAmount = web3.utils.toBN(toWei(token.userTokenBorrowedAmount.amount));
+      if (web3.utils.toBN(valueInWei).gt(borrowedAmount)) {
+        throw new Error(
+          `Cannot repay more than borrowed. You borrowed ${parseFloat(token.userTokenBorrowedAmount.amount).toFixed(4)} ${token.tokenSymbol} but trying to repay ${value} ${token.tokenSymbol}.`
+        );
+      }
       
       // Approve the total amount (principal + interest)
       console.log('Approving token spend...');
       await trackPromise(
         sendTransaction(
-          tokenInst.methods.approve(contract.options.address, amountToPayBackInWei),
+          tokenInst.methods.approve(contract.options.address, amountToPayBackInWei.toString()),
           fromAddress
         )
       );
