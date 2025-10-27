@@ -107,20 +107,36 @@ export default function Faucet() {
     if (isPushChain) {
       const data = method.encodeABI();
       
-      // Use MetaMask for Push Chain
-      const txHash = await window.ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [{
-          from: fromAddress,
-          to: method._parent._address,
-          data: data,
-          gas: '0x76c0'
-        }],
+      console.log('Sending transaction on PushChain:', {
+        from: fromAddress,
+        to: method._parent._address,
+        data: data.substring(0, 50) + '...',
+        chainId: chainId
       });
       
-      const metamaskWeb3 = new web3.constructor(window.ethereum);
-      const receipt = await metamaskWeb3.eth.getTransactionReceipt(txHash);
-      return { transactionHash: txHash, ...receipt };
+      try {
+        // Use MetaMask for Push Chain with higher gas limit
+        const txHash = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: fromAddress,
+            to: method._parent._address,
+            data: data,
+            gas: '0xF4240' // 1,000,000 gas
+          }],
+        });
+        
+        console.log('Transaction sent, hash:', txHash);
+        
+        const metamaskWeb3 = new web3.constructor(window.ethereum);
+        const receipt = await metamaskWeb3.eth.getTransactionReceipt(txHash);
+        
+        console.log('Transaction receipt:', receipt);
+        return { transactionHash: txHash, ...receipt };
+      } catch (error) {
+        console.error('PushChain transaction error:', error);
+        throw error;
+      }
     }
     
     if (isUniversal && pushChainContext?.pushClient) {
@@ -161,7 +177,15 @@ export default function Faucet() {
     setTxHash({ ...txHash, [token.symbol]: null });
 
     try {
+      console.log('Claiming faucet for token:', token.symbol, token.address);
+      console.log('MockTokens structure:', { 
+        hasAbi: !!MockTokens.abi, 
+        isArray: Array.isArray(MockTokens),
+        type: typeof MockTokens 
+      });
+      
       const tokenContract = new web3.eth.Contract(MockTokens.abi || MockTokens, token.address);
+      console.log('Token contract created successfully');
       
       const result = await trackPromise(
         sendTransaction(
@@ -170,6 +194,7 @@ export default function Faucet() {
         )
       );
 
+      console.log('Faucet transaction successful:', result);
       setClaimStatus({ ...claimStatus, [token.symbol]: 'success' });
       setTxHash({ ...txHash, [token.symbol]: result.transactionHash });
 
@@ -184,6 +209,12 @@ export default function Faucet() {
         setTxHash({ ...txHash, [token.symbol]: null });
       }, 5000);
     } catch (error) {
+      console.error(`Faucet claim error for ${token.symbol}:`, error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        data: error.data
+      });
       setClaimStatus({ ...claimStatus, [token.symbol]: 'error' });
       setTimeout(() => {
         setClaimStatus({ ...claimStatus, [token.symbol]: null });
