@@ -1,5 +1,4 @@
 import Image from "next/image";
-import correct from "../../assets/correct.png";
 import { todp } from "../../utils/todp";
 import { useState } from "react";
 import { LoadingSpinerComponent } from "../../utils/Spinner";
@@ -97,14 +96,9 @@ export default function ModalBorrow({
       {/* <!-- Modal body --> */}
       {borrowingResult?.transactionHash ? (
         <div className="flex flex-col justify-center items-center">
-          <Image
-            src={correct}
-            width={60}
-            height={60}
-            layout="fixed"
-            className="card-img-top"
-            alt="coinimage"
-          />
+          <svg className="w-16 h-16 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           <div className="font-bold mt-4">All Done!</div>
           <p>
             You borrowed {value} {token?.name}
