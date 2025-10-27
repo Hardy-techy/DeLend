@@ -90,39 +90,54 @@ export default function Home() {
       const data = method.encodeABI();
       const to = method._parent._address;
       
-      const txHash = await window.ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [{
-          from: fromAddress,
-          to: to,
-          data: data,
-          gas: '0x7A120',
-        }],
+      console.log('Sending transaction on PushChain:', {
+        from: fromAddress,
+        to: to,
+        data: data.substring(0, 50) + '...',
+        chainId: chainId
       });
       
-      // Wait for transaction to be mined
-      const metamaskWeb3 = new web3.constructor(window.ethereum);
+      try {
+        const txHash = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: fromAddress,
+            to: to,
+            data: data,
+            gas: '0xF4240', // 1,000,000 gas (increased from 500k)
+          }],
+        });
+        
+        console.log('Transaction sent, hash:', txHash);
       
-      let receipt = null;
-      let attempts = 0;
-      const maxAttempts = 60; // 60 seconds max
-      
-      while (!receipt && attempts < maxAttempts) {
-        receipt = await metamaskWeb3.eth.getTransactionReceipt(txHash);
-        if (!receipt) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          attempts++;
+        // Wait for transaction to be mined
+        const metamaskWeb3 = new web3.constructor(window.ethereum);
+        
+        let receipt = null;
+        let attempts = 0;
+        const maxAttempts = 60; // 60 seconds max
+        
+        while (!receipt && attempts < maxAttempts) {
+          receipt = await metamaskWeb3.eth.getTransactionReceipt(txHash);
+          if (!receipt) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            attempts++;
+          }
         }
+        
+        if (!receipt) {
+          throw new Error('Transaction not mined after 60 seconds');
+        }
+        
+        // Wait additional 2 seconds for blockchain state to propagate
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        console.log('Transaction receipt:', receipt);
+        return { transactionHash: txHash, ...receipt };
+      } catch (error) {
+        console.error('PushChain transaction error:', error);
+        throw error;
       }
-      
-      if (!receipt) {
-        throw new Error('Transaction not mined after 60 seconds');
-      }
-      
-      // Wait additional 2 seconds for blockchain state to propagate
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      return { transactionHash: txHash, ...receipt };
     }
     
     if (isUniversal && pushChainContext?.pushClient) {
@@ -155,15 +170,20 @@ export default function Home() {
     if (!fromAddress) throw new Error("No wallet connected");
 
     try {
+      console.log('Starting supply for token:', token.tokenSymbol, 'amount:', value);
+      
       const tokenInst = new web3.eth.Contract(MockTokens.abi || MockTokens, token.tokenAddress);
       
       // Approve
+      console.log('Approving token spend...');
       await trackPromise(
         sendTransaction(
           tokenInst.methods.approve(contract.options.address, toWei(value)),
           fromAddress
         )
       );
+      
+      console.log('Approval successful, lending...');
       
       // Lend
       const result = await trackPromise(
@@ -173,11 +193,13 @@ export default function Home() {
         )
       );
       
+      console.log('Supply successful:', result);
       setTxResult(result);
       
       // Immediately refresh data - transaction is already mined at this point
       await refreshAllData();
     } catch (err) {
+      console.error('Supply error:', err);
       setTxError(err);
     }
   };
@@ -187,17 +209,22 @@ export default function Home() {
     if (!fromAddress) throw new Error("No wallet connected");
 
     try {
+      console.log('Starting borrow for token:', token.tokenSymbol, 'amount:', value);
+      
       const result = await trackPromise(
         sendTransaction(
           contract.methods.borrow(toWei(value), token.tokenAddress),
           fromAddress
         )
       );
+      
+      console.log('Borrow successful:', result);
       setTxResult(result);
       
       // Immediately refresh data - transaction is already mined at this point
       await refreshAllData();
     } catch (err) {
+      console.error('Borrow error:', err);
       setTxError(err);
     }
   };
@@ -207,17 +234,22 @@ export default function Home() {
     if (!fromAddress) throw new Error("No wallet connected");
 
     try {
+      console.log('Starting withdraw for token:', token.tokenSymbol, 'amount:', value);
+      
       const result = await trackPromise(
         sendTransaction(
           contract.methods.withdraw(token.tokenAddress, toWei(value)),
           fromAddress
         )
       );
+      
+      console.log('Withdraw successful:', result);
       setTxResult(result);
       
       // Immediately refresh data - transaction is already mined at this point
       await refreshAllData();
     } catch (err) {
+      console.error('Withdraw error:', err);
       setTxError(err);
     }
   };
@@ -227,17 +259,29 @@ export default function Home() {
     if (!fromAddress) throw new Error("No wallet connected");
 
     try {
+      console.log('Starting repay for token:', token.tokenSymbol, 'amount:', value);
+      
       const tokenInst = new web3.eth.Contract(MockTokens.abi || MockTokens, token.tokenAddress);
       const interest = Number(token.borrowAPYRate) * Number(toWei(value));
       const amountToPayBack = (Number(toWei(value)) + interest).toString();
       
+      console.log('Repay details:', {
+        value: value,
+        interest: interest,
+        amountToPayBack: amountToPayBack,
+        tokenAddress: token.tokenAddress
+      });
+      
       // Approve
+      console.log('Approving token spend...');
       await trackPromise(
         sendTransaction(
           tokenInst.methods.approve(contract.options.address, toWei(amountToPayBack)),
           fromAddress
         )
       );
+      
+      console.log('Approval successful, paying debt...');
       
       // Pay debt
       const result = await trackPromise(
@@ -246,11 +290,19 @@ export default function Home() {
           fromAddress
         )
       );
+      
+      console.log('Repay successful:', result);
       setTxResult(result);
       
       // Immediately refresh data - transaction is already mined at this point
       await refreshAllData();
     } catch (err) {
+      console.error('Repay error:', err);
+      console.error('Error details:', {
+        message: err.message,
+        code: err.code,
+        data: err.data
+      });
       setTxError(err);
     }
   };
