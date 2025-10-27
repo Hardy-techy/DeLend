@@ -139,7 +139,6 @@ export default function ModalSupply({
               <input
                 onChange={(event) => {
                   const inputValue = event.target.value;
-                  console.log("📝 Input changed:", inputValue);
                   
                   // Allow empty input
                   if (inputValue === "") {
@@ -150,14 +149,12 @@ export default function ModalSupply({
                   
                   // Check if valid number
                   if (isNaN(inputValue) || inputValue.includes(" ")) {
-                    console.log("❌ Invalid number:", inputValue);
                     return;
                   }
 
                   // Cap at wallet balance if available
                   const maxAmount = token?.walletBalance?.amount || Infinity;
                   if (Number(inputValue) >= Number(maxAmount)) {
-                    console.log("⚠️ Capped at max:", maxAmount);
                     setValue(maxAmount);
                     setValueInDollars(token?.walletBalance?.inDollars || "0.00");
                     return;
@@ -168,7 +165,6 @@ export default function ModalSupply({
                     ? (parseFloat(inputValue) * token.oneTokenToDollar).toFixed(2)
                     : "0.00";
 
-                  console.log("✅ Setting value:", inputValue, "($" + dollarValue + ")");
                   setValueInDollars(dollarValue);
                   setValue(inputValue);
                 }}

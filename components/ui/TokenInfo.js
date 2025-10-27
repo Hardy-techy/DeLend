@@ -121,7 +121,7 @@ export default function TokenInfo({
         // Not Added
       }
     } catch (error) {
-      console.log(error);
+      // Error adding token
     }
   };
 
@@ -158,7 +158,7 @@ export default function TokenInfo({
        // Not Added
       }
     } catch (error) {
-      console.log(error);
+      // Error adding token
     }
   };
 

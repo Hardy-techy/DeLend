@@ -51,7 +51,6 @@ export default function Home() {
   // FORCE COMPONENT REMOUNT when web3 becomes ready
   useEffect(() => {
     if (web3 && contract && !isLoading && forceUpdate === 0) {
-      console.log('� Web3 ready - forcing component update to remount hooks');
       setTimeout(() => {
         setForceUpdate(1); // Trigger re-render which will remount hooks with web3 ready
       }, 200);
@@ -78,9 +77,8 @@ export default function Home() {
         refreshYourSupplies(),
         refreshYourBorrows()
       ]);
-      console.log('✅ All data refreshed successfully');
     } catch (error) {
-      console.error('❌ Refresh error:', error);
+      // Error during refresh
     }
   };
 
@@ -293,7 +291,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#0F1419]">
       <Head>
-        <title>DeLend - Decentralized Lending Protocol</title>
+        <title>DeLend - Markets</title>
+        <link rel="icon" href="/favicon.png" />
       </Head>
 
       <ModernNavbar />

@@ -8,7 +8,7 @@ export default function ModernNavbar() {
   const router = useRouter();
 
   return (
-    <nav className="bg-[#0B0E14]/95 border-b border-white/8 backdrop-blur-xl sticky top-0 z-50 shadow-lg shadow-black/20">
+    <nav className="bg-[#0B0E14]/95 border-b border-black backdrop-blur-xl sticky top-0 z-50 shadow-lg shadow-black/20">
       <div className="max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-10">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
@@ -21,7 +21,6 @@ export default function ModernNavbar() {
                     alt="DeLend" 
                     className="h-32 w-auto object-contain transition-all duration-300 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
                 </div>
               </div>
             </Link>
@@ -65,8 +64,21 @@ export default function ModernNavbar() {
               </span>
             </div>
             
-            {/* Wallet Button */}
-            <div className="relative">
+            {/* Wallet Button - Pink theme */}
+            <div className="relative push-wallet-button">
+              <style jsx global>{`
+                .push-wallet-button button {
+                  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%) !important;
+                  border: 1px solid rgba(236, 72, 153, 0.3) !important;
+                  transition: all 0.3s ease !important;
+                  box-shadow: 0 4px 6px rgba(236, 72, 153, 0.1) !important;
+                }
+                .push-wallet-button button:hover {
+                  background: linear-gradient(135deg, #db2777 0%, #be185d 100%) !important;
+                  box-shadow: 0 0 20px rgba(236, 72, 153, 0.4) !important;
+                  transform: translateY(-1px) !important;
+                }
+              `}</style>
               <PushUniversalAccountButton />
             </div>
           </div>
@@ -74,7 +86,7 @@ export default function ModernNavbar() {
       </div>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden border-t border-white/8 bg-[#0B0E14]/98 backdrop-blur-xl">
+      <div className="md:hidden border-t border-black bg-[#0B0E14]/98 backdrop-blur-xl">
         <div className="flex items-center justify-center gap-1 px-4 py-3">
           <Link href="/dashboard">
             <span className={`cursor-pointer transition-all duration-300 text-sm font-medium px-4 py-2 rounded-lg ${

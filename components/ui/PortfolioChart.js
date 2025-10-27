@@ -29,23 +29,20 @@ export default function PortfolioChart({ yourSupplies, yourBorrows }) {
     // Calculate actual portfolio values from props (using same structure as market.js)
     const totalSupplied = yourSupplies?.data?.yourBalance || 0;
     const totalBorrowed = yourBorrows?.data?.yourBalance || 0;
-    const netWorth = totalSupplied - totalBorrowed;
     const available = Math.max(0, (totalSupplied * 0.8) - totalBorrowed); // 80% LTV
 
     return {
-      labels: ['Supplied Assets', 'Borrowed Assets', 'Net Worth', 'Available to Borrow'],
+      labels: ['Supplied Assets', 'Borrowed Assets', 'Available to Borrow'],
       datasets: [{
-        data: [totalSupplied, totalBorrowed, netWorth, available],
+        data: [totalSupplied, totalBorrowed, available],
         backgroundColor: [
           '#10B981', // Green for supplied
           '#F59E0B', // Orange for borrowed  
-          '#3B82F6', // Blue for net worth
           '#8B5CF6', // Purple for available
         ],
         borderColor: [
           '#059669',
           '#D97706',
-          '#2563EB',
           '#7C3AED',
         ],
         borderWidth: 2,

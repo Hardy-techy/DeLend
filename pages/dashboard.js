@@ -18,11 +18,11 @@ export default function Faucet() {
   const [txHash, setTxHash] = useState({});
   const [lastClaimTime, setLastClaimTime] = useState({});
   const [forceUpdate, setForceUpdate] = useState(0); // Force remount counter
+  const [showHealthInfo, setShowHealthInfo] = useState(false); // Health info tooltip
 
   // FORCE COMPONENT REMOUNT when web3 becomes ready
   useEffect(() => {
     if (web3 && contract && !isLoading && forceUpdate === 0) {
-      console.log('🔄 Web3 ready - forcing component update to remount hooks');
       setTimeout(() => {
         setForceUpdate(1); // Trigger re-render which will remount hooks with web3 ready
       }, 200);
@@ -66,14 +66,15 @@ export default function Faucet() {
 
   // Get health status styling based on score
   const getHealthStatus = (score) => {
-    if (score === null) return { color: 'text-white', bg: 'bg-gray-500', label: 'No Activity', ring: 'ring-gray-500' };
-    if (score >= 80) return { color: 'text-white', bg: 'bg-green-500', label: 'Healthy', ring: 'ring-green-500' };
-    if (score >= 50) return { color: 'text-white', bg: 'bg-yellow-500', label: 'Moderate', ring: 'ring-yellow-500' };
-    if (score >= 25) return { color: 'text-white', bg: 'bg-orange-500', label: 'At Risk', ring: 'ring-orange-500' };
-    return { color: 'text-white', bg: 'bg-red-500', label: 'Critical', ring: 'ring-red-500' };
+    if (score === null) return { color: 'text-gray-400', bg: 'bg-gray-500/10', label: 'No Activity', border: 'border-gray-500/20' };
+    if (score >= 80) return { color: 'text-emerald-400', bg: 'bg-emerald-500/10', label: 'Safe', border: 'border-emerald-500/20' };
+    if (score >= 50) return { color: 'text-amber-400', bg: 'bg-amber-500/10', label: 'Moderate', border: 'border-amber-500/20' };
+    if (score >= 25) return { color: 'text-orange-400', bg: 'bg-orange-500/10', label: 'At Risk', border: 'border-orange-500/20' };
+    return { color: 'text-red-400', bg: 'bg-red-500/10', label: 'Critical', border: 'border-red-500/20' };
   };
 
   const healthStatus = getHealthStatus(healthScore);
+
 
   // Tokens for faucet (Push Chain addresses)
   const tokens = [
@@ -183,7 +184,6 @@ export default function Faucet() {
         setTxHash({ ...txHash, [token.symbol]: null });
       }, 5000);
     } catch (error) {
-      console.error('Claim error:', error);
       setClaimStatus({ ...claimStatus, [token.symbol]: 'error' });
       setTimeout(() => {
         setClaimStatus({ ...claimStatus, [token.symbol]: null });
@@ -194,7 +194,8 @@ export default function Faucet() {
   return (
     <div className="min-h-screen bg-[#0B0E14]">
       <Head>
-        <title>Testnet Faucet - DeLend</title>
+        <title>DeLend - Dashboard</title>
+        <link rel="icon" href="/favicon.png" />
       </Head>
 
       <ModernNavbar />
@@ -218,75 +219,97 @@ export default function Faucet() {
               {connectedAccount || account.data ? (
                 <div className="space-y-6">
                   {/* Health Score Card */}
-                  <div className="relative bg-gradient-to-br from-[#1A1F26] via-[#151A21] to-[#0F1419] border border-white/15 rounded-3xl p-12 transition-all duration-700 shadow-2xl shadow-black/40 hover:shadow-black/60 group overflow-hidden">
-                    {/* Background Pattern */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-10">
-                        <div>
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="p-2 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl">
-                              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <div className="relative bg-gradient-to-br from-[#1A1F26]/80 via-[#151A21]/80 to-[#0F1419]/80 border border-white/10 rounded-2xl p-8 transition-all duration-300 shadow-lg hover:border-white/20 backdrop-blur-sm">
+                    
+                    <div className="flex items-start justify-between mb-8">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <h2 className="text-xl font-semibold text-white">Health Factor</h2>
+                          
+                          {/* Info Icon with Tooltip */}
+                          <div className="relative">
+                            <button
+                              onMouseEnter={() => setShowHealthInfo(true)}
+                              onMouseLeave={() => setShowHealthInfo(false)}
+                              className="text-gray-400 hover:text-gray-300 transition-colors"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
-                            </div>
-                            <h2 className="text-3xl font-bold text-white tracking-tight">Health Factor</h2>
+                            </button>
+                            
+                            {/* Tooltip */}
+                            {showHealthInfo && (
+                              <div className="absolute left-0 top-8 z-50 w-80 bg-[#1A1F26] border border-white/20 rounded-xl p-4 shadow-2xl">
+                                <h3 className="text-sm font-semibold text-white mb-3">Health Factor Levels</h3>
+                                <div className="space-y-2 text-xs">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/40"></div>
+                                    <span className="text-emerald-400 font-medium">Safe (80-100):</span>
+                                    <span className="text-gray-400">Low liquidation risk</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/40"></div>
+                                    <span className="text-amber-400 font-medium">Moderate (50-79):</span>
+                                    <span className="text-gray-400">Monitor positions</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-orange-500/20 border border-orange-500/40"></div>
+                                    <span className="text-orange-400 font-medium">At Risk (25-49):</span>
+                                    <span className="text-gray-400">Add collateral soon</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/40"></div>
+                                    <span className="text-red-400 font-medium">Critical (&lt;25):</span>
+                                    <span className="text-gray-400">Urgent action needed</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <p className="text-gray-300 text-lg">Your account's liquidation risk assessment</p>
                         </div>
-                        <div className={`px-6 py-3 rounded-2xl text-base font-bold ${healthStatus.bg} ${healthStatus.color} ring-2 ${healthStatus.ring} shadow-xl backdrop-blur-sm`}>
-                          {healthStatus.label}
-                        </div>
+                        <p className="text-gray-400 text-sm">Account liquidation risk</p>
+                      </div>
+                      <div className={`px-4 py-2 rounded-lg text-sm font-medium ${healthStatus.bg} ${healthStatus.color} border ${healthStatus.border}`}>
+                        {healthStatus.label}
                       </div>
                     </div>
 
-                    <div className="relative z-10 flex items-center gap-16">
+                    <div className="flex items-center gap-12">
                       {/* Health Score Visualization */}
                       <div className="relative">
-                        <div className="relative w-40 h-40">
-                          {/* Outer glow effect */}
-                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 blur-xl opacity-50"></div>
-
-                          <svg className="relative w-full h-full transform -rotate-90 drop-shadow-2xl">
-                            <defs>
-                              <linearGradient id="healthGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stopColor="#3B82F6" />
-                                <stop offset="50%" stopColor="#8B5CF6" />
-                                <stop offset="100%" stopColor="#06B6D4" />
-                              </linearGradient>
-                            </defs>
+                        <div className="relative w-32 h-32">
+                          <svg className="relative w-full h-full transform -rotate-90">
                             <circle
-                              cx="80"
-                              cy="80"
-                              r="70"
-                              stroke="#374151"
-                              strokeWidth="8"
+                              cx="64"
+                              cy="64"
+                              r="56"
+                              stroke="#1F2937"
+                              strokeWidth="6"
                               fill="none"
-                              opacity="0.3"
                             />
                             <circle
-                              cx="80"
-                              cy="80"
-                              r="70"
-                              stroke="url(#healthGradient)"
-                              strokeWidth="8"
+                              cx="64"
+                              cy="64"
+                              r="56"
+                              stroke={healthScore >= 80 ? '#34D399' : healthScore >= 50 ? '#FBBF24' : healthScore >= 25 ? '#FB923C' : '#F87171'}
+                              strokeWidth="6"
                               fill="none"
-                              strokeDasharray={`${2 * Math.PI * 70}`}
-                              strokeDashoffset={`${2 * Math.PI * 70 * (1 - (healthScore || 0) / 100)}`}
+                              strokeDasharray={`${2 * Math.PI * 56}`}
+                              strokeDashoffset={`${2 * Math.PI * 56 * (1 - (healthScore || 0) / 100)}`}
                               strokeLinecap="round"
-                              style={{
-                                transition: 'stroke-dashoffset 1s ease-in-out',
-                                filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))'
-                              }}
+                              style={{ transition: 'stroke-dashoffset 1s ease-in-out' }}
                             />
                           </svg>
                           <div className="absolute inset-0 flex items-center justify-center">
                             <div className="text-center">
-                              <div className="text-4xl font-bold text-white mb-2 tracking-tight">
+                              <div className="text-3xl font-bold text-white">
                                 {healthScore !== null ? healthScore.toFixed(0) : '--'}
                               </div>
-                              <div className="text-sm text-gray-300 font-semibold tracking-widest">SCORE</div>
+                              <div className="text-xs text-gray-500 font-medium mt-1">SCORE</div>
                             </div>
                           </div>
                         </div>
@@ -294,7 +317,7 @@ export default function Faucet() {
 
                       {/* Health Description */}
                       <div className="flex-1">
-                        <div className="text-sm text-gray-300 mb-2">
+                        <div className="text-sm text-gray-300 leading-relaxed">
                           {healthScore === null
                             ? "Connect your wallet and start supplying assets to see your health factor."
                             : healthScore >= 80
@@ -306,7 +329,7 @@ export default function Faucet() {
                             : "Critical health level! Immediate action required to avoid liquidation."
                           }
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 mt-3">
                           Health Factor = (Total Collateral × LTV) / Total Debt
                         </div>
                       </div>

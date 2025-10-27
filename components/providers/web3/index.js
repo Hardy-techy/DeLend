@@ -97,7 +97,6 @@ export default function Web3Provider({ children }) {
     }
     
     if (newAccount !== connectedAccountState) {
-      console.log('👛 Account changed:', connectedAccountState, '→', newAccount);
       setConnectedAccountState(newAccount);
     }
   }, [

@@ -44,7 +44,6 @@ export const handler = (web3, contract, connectedAccount) => () => {
           .map(currentToken => 
             normalizeToken(web3, contract, currentToken, connectedAccount)
               .catch(error => {
-                console.error(`Failed to normalize token ${currentToken.name}:`, error);
                 return null;
               })
           );

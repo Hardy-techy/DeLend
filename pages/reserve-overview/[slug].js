@@ -3,6 +3,7 @@ import ReserveStatus from "../../components/ui/ReserveStatus";
 import TokenInfo from "../../components/ui/TokenInfo";
 import Footer from "../../components/ui/Footer";
 import Image from "next/image";
+import Head from "next/head";
 import {
   useAccount,
   useNetwork,
@@ -53,6 +54,11 @@ export default function Details({ token }) {
 
   return (
     <div className="">
+      <Head>
+        <title>DeLend - Reserve Overview</title>
+        <link rel="icon" href="/favicon.png" />
+      </Head>
+
       {/* <Sidebar /> */}
 
       <div className="relative bg-gray-100 ">
