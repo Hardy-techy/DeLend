@@ -262,31 +262,36 @@ export default function Home() {
       console.log('Starting repay for token:', token.tokenSymbol, 'amount:', value);
       
       const tokenInst = new web3.eth.Contract(MockTokens.abi || MockTokens, token.tokenAddress);
-      const interest = Number(token.borrowAPYRate) * Number(toWei(value));
-      const amountToPayBack = (Number(toWei(value)) + interest).toString();
+      
+      // Calculate interest: borrowAPYRate is like 0.05 for 5%
+      const valueInWei = toWei(value);
+      const interestInWei = web3.utils.toBN(valueInWei).mul(web3.utils.toBN(Math.floor(parseFloat(token.borrowAPYRate) * 1000000))).div(web3.utils.toBN(1000000));
+      const amountToPayBackInWei = web3.utils.toBN(valueInWei).add(interestInWei).toString();
       
       console.log('Repay details:', {
         value: value,
-        interest: interest,
-        amountToPayBack: amountToPayBack,
+        valueInWei: valueInWei,
+        borrowAPYRate: token.borrowAPYRate,
+        interestInWei: interestInWei.toString(),
+        amountToPayBackInWei: amountToPayBackInWei,
         tokenAddress: token.tokenAddress
       });
       
-      // Approve
+      // Approve the total amount (principal + interest)
       console.log('Approving token spend...');
       await trackPromise(
         sendTransaction(
-          tokenInst.methods.approve(contract.options.address, toWei(amountToPayBack)),
+          tokenInst.methods.approve(contract.options.address, amountToPayBackInWei),
           fromAddress
         )
       );
       
       console.log('Approval successful, paying debt...');
       
-      // Pay debt
+      // Pay debt - contract expects just the principal amount
       const result = await trackPromise(
         sendTransaction(
-          contract.methods.payDebt(token.tokenAddress, toWei(value)),
+          contract.methods.payDebt(token.tokenAddress, valueInWei),
           fromAddress
         )
       );
