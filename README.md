@@ -10,10 +10,8 @@ Deland is a decentralized finance (DeFi) protocol that enables users to lend and
 
 - **🏦 Lending**: Deposit your crypto assets and earn competitive interest rates
 - **💰 Borrowing**: Access liquidity by borrowing against your collateralized assets
-- **📊 Real-time Price Feeds**: Accurate asset pricing powered by decentralized oracles
-- **🔒 Secure Smart Contracts**: Audited and battle-tested lending contract architecture
+- **📊 Price Feeds**: Accurate asset pricing powered by decentralized oracles
 - **💎 Multiple Asset Support**: Support for various tokens including WETH, USDC, USDT, and more
-- **📈 Dynamic Interest Rates**: Market-driven interest rates based on supply and demand
 - **⚡ Instant Transactions**: Fast and efficient blockchain transactions
 - **🎨 Modern UI**: Intuitive and responsive user interface built with Next.js
 - **🌐 PushChain Integration**: Deployed on PushChain network for enhanced scalability and low fees
@@ -45,6 +43,41 @@ Deland/
 └── utils/                # Helper functions
 ```
 
+## 💡 How It Works
+
+### Lending (Supply)
+
+1. Connect your Web3 wallet
+2. Select the asset you want to lend
+3. Enter the amount to supply
+4. Approve the transaction
+5. Start earning interest immediately
+
+### Borrowing
+
+1. Supply collateral to the protocol
+2. View your borrowing power
+3. Select the asset you want to borrow
+4. Enter the amount (within your limit)
+5. Confirm the transaction
+6. Receive borrowed assets instantly
+
+### Repayment
+
+1. Navigate to "Your Borrows"
+2. Select the loan to repay
+3. Enter repayment amount
+4. Confirm transaction
+5. Collateral is released proportionally
+
+### Withdrawal
+
+1. Go to "Your Supplies"
+2. Select the asset to withdraw
+3. Enter withdrawal amount
+4. Confirm transaction (if no active borrows against it)
+
+   
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -111,76 +144,14 @@ To connect your wallet to PushChain network:
 
 Add these details to your MetaMask or Web3 wallet to interact with Deland on PushChain.
 
-## 📝 Smart Contract Deployment
-
-### Deploy Contracts
-
-```bash
-# Compile contracts
-npx hardhat compile
-
-# Deploy to local network
-npx hardhat run scripts/deploy.js --network localhost
-
-# Deploy to testnet
-npx hardhat run scripts/deploy.js --network goerli
-```
-
-### Setup Price Feeds
-
-```bash
-node scripts/setupPriceFeeds.js
-```
-
-## 💡 How It Works
-
-### Lending (Supply)
-
-1. Connect your Web3 wallet
-2. Select the asset you want to lend
-3. Enter the amount to supply
-4. Approve the transaction
-5. Start earning interest immediately
-
-### Borrowing
-
-1. Supply collateral to the protocol
-2. View your borrowing power
-3. Select the asset you want to borrow
-4. Enter the amount (within your limit)
-5. Confirm the transaction
-6. Receive borrowed assets instantly
-
-### Repayment
-
-1. Navigate to "Your Borrows"
-2. Select the loan to repay
-3. Enter repayment amount
-4. Confirm transaction
-5. Collateral is released proportionally
-
-### Withdrawal
-
-1. Go to "Your Supplies"
-2. Select the asset to withdraw
-3. Enter withdrawal amount
-4. Confirm transaction (if no active borrows against it)
-
-## 🔐 Security Features
-
-- **Collateralization Ratio**: Over-collateralization ensures protocol solvency
-- **Liquidation Mechanism**: Automatic liquidation of undercollateralized positions
-- **Price Oracle Integration**: Reliable asset pricing from trusted sources
-- **Audited Smart Contracts**: Security-first approach to contract development
-- **Access Controls**: Role-based permissions for contract management
 
 ## 📊 Supported Assets
 
 | Token | Symbol | Network | Collateral Factor |
 |-------|--------|---------|-------------------|
-| Wrapped Ether | WETH | PushChain/Ethereum | 80% |
-| USD Coin | USDC | PushChain/Ethereum | 85% |
-| Tether | USDT | PushChain/Ethereum | 85% |
+| Wrapped Ether | WETH | PushChain | 80% |
+| USD Coin | USDC | PushChain | 85% |
+| Tether | USDT | PushChain | 85% |
 
 
 
