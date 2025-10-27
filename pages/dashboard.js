@@ -161,7 +161,7 @@ export default function Faucet() {
     setTxHash({ ...txHash, [token.symbol]: null });
 
     try {
-      const tokenContract = new web3.eth.Contract(MockTokens, token.address);
+      const tokenContract = new web3.eth.Contract(MockTokens.abi || MockTokens, token.address);
       
       const result = await trackPromise(
         sendTransaction(

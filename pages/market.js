@@ -155,7 +155,7 @@ export default function Home() {
     if (!fromAddress) throw new Error("No wallet connected");
 
     try {
-      const tokenInst = new web3.eth.Contract(MockTokens, token.tokenAddress);
+      const tokenInst = new web3.eth.Contract(MockTokens.abi || MockTokens, token.tokenAddress);
       
       // Approve
       await trackPromise(
@@ -227,7 +227,7 @@ export default function Home() {
     if (!fromAddress) throw new Error("No wallet connected");
 
     try {
-      const tokenInst = new web3.eth.Contract(MockTokens, token.tokenAddress);
+      const tokenInst = new web3.eth.Contract(MockTokens.abi || MockTokens, token.tokenAddress);
       const interest = Number(token.borrowAPYRate) * Number(toWei(value));
       const amountToPayBack = (Number(toWei(value)) + interest).toString();
       
